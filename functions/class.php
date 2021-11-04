@@ -48,10 +48,12 @@ class System
     public function getDBTableCount($database, $tableName, $type = 1)
     {
         if ($type === 2) {
-            return $this->mainQuery($database, "select distinct tableId from " . $tableName)->rowCount();
+            $query = $database->prepare("select distinct tableId from  $tableName");
+        } else {
+            $query = $database->prepare("select * from  $tableName");
         }
-
-        return $this->mainQuery($database, "select * from " . $tableName)->rowCount();
+        $query->execute();
+        return $query->rowCount();
     }
 
     public function getSolidityRatio($database)
@@ -59,7 +61,11 @@ class System
         $tableCount = $this->getDBTableCount($database, 'tables');
         $orderCount = $this->getDBTableCount($database, 'orders', 2);
 
-        return round($orderCount * 100 / $tableCount) . '%';
+        if ($orderCount !== 0) {
+            return round($orderCount * 100 / $tableCount) . '%';
+        } else {
+            return "0%";
+        }
     }
 
     public function getCategories($database)
