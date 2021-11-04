@@ -1,7 +1,8 @@
 <?php
 ob_start();
 if (isset($_GET)) {
-    if ($_GET['operation']) {
+    if (isset($_GET['operation'])) {
+        include_once '../parts/header.php';
         include_once 'connection.php';
         include_once 'class.php';
         $system = new System();
@@ -14,7 +15,7 @@ if (isset($_GET)) {
                     $totalAmount = 0;
                     $totalPrice = 0;
                     echo "
-                            <table class='table text-center table-striped'>
+                            <table id='table' class='table text-center table-striped'>
                                 <thead class='table-dark'>
                                     <tr>
                                         <th>Ürün</th>
@@ -30,10 +31,12 @@ if (isset($_GET)) {
                         $totalPrice += $order['price'] * $order['amount'];
                         echo "
                                     <tr>
-                                        <td>" . $order["name"] . "</td>
-                                        <td>" . $order["amount"] . "</td>
-                                        <td>" . $order["price"] . "₺</td>
-                                        <td><a href='' class='text-danger font-weight-bolder'>Sil</a></td>
+                                        <td style='vertical-align: middle'>" . $order["name"] . "</td>
+                                        <td style='vertical-align: middle'>" . $order["amount"] . "</td>
+                                        <td style='vertical-align: middle'>" . $order["price"] . "₺</td>
+                                        <td style='vertical-align: middle'>
+                                            <button data-cnd='" . $tableId . "' data-id='" . $order['id'] . "' class='btnDelete btn btn-danger font-weight-bolder'>Sil</button>
+                                        </td>
                                     </tr>
                                 ";
                     }
@@ -88,10 +91,42 @@ if (isset($_GET)) {
                     return;
                 }
                 break;
+            case 'delete':
+                if (isset($_POST)) {
+                    $productId = htmlspecialchars($_POST['productId']);
+                    $tableId = htmlspecialchars($_POST['tableId']);
+
+                    $query = $system->mainQuery($database, "delete from orders where tableId = $tableId AND productId = $productId");
+
+                } else {
+                    header('Location:' . SITE_URL);
+                }
+                break;
         }
+        ?>
+        <script>
+
+            $(document).ready(function () {
+                // delete product
+                $('.btnDelete').click(function (e) {
+                    e.preventDefault();
+                    const dataID = $(this).attr('data-id');
+                    const tableID = $(this).attr('data-cnd');
+                    $.post('functions/operations.php?operation=delete', {
+                        productId: dataID,
+                        tableId: tableID
+                    }, function () {
+                        window.location.reload();
+                    });
+                })
+            })
+
+        </script>
+        <?php
+        include_once '../parts/footer.php';
     } else {
-        header('Refresh:1, url=' . SITE_URL);
+        header('Location:' . SITE_URL);
     }
 } else {
-    header('Refresh:1, url=' . SITE_URL);
+    header('Location:' . SITE_URL);
 }
