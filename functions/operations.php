@@ -48,7 +48,7 @@ if (isset($_GET)) {
                                     </tr>
                                 </tbody>
                             </table>          
-                            <button class='btn bgColorOrange w-100 font-weight-bold mb-3'>Hesabı Al</button>            
+                            <button id='btnPay' data-id='" . $tableId . "' class='btn bgColorOrange w-100 font-weight-bold mb-3'>Hesabı Al</button>            
                        ";
                 } else {
                     echo "<div class='alert alert-warning text-center mx-3'>Henüz sipariş yok!</div>";
@@ -102,6 +102,19 @@ if (isset($_GET)) {
                     header('Location:' . SITE_URL);
                 }
                 break;
+            case 'pay':
+                if (isset($_POST)) {
+                    $tableId = htmlspecialchars($_POST['tableId']);
+                    $date = date("Y-m-d");
+                    $orders = $system->mainQuery($database, "select * from orders INNER JOIN tables ON orders.tableId = tables.id where tableId=$tableId");
+                    foreach ($orders as $order) {
+                        $system->mainQuery($database, "insert into reports (tableId,productId,amount,date) VALUES ('$tableId','" . $order['productId'] . "','" . $order['amount'] . "','$date')");
+                    }
+                    $query = $system->mainQuery($database, "delete from orders where tableId = $tableId");
+                } else {
+                    header('Location:' . SITE_URL);
+                }
+                break;
         }
         ?>
         <script>
@@ -119,6 +132,18 @@ if (isset($_GET)) {
                         window.location.reload();
                     });
                 })
+
+                // pay the bill
+                $('#btnPay').click(function (e) {
+                    e.preventDefault()
+                    const tableId = $(this).attr('data-id');
+                    $.post('functions/operations.php?operation=pay', {
+                        tableId: tableId
+                    }, function () {
+                        window.location.href = "<?=SITE_URL?>";
+                    });
+                })
+
             })
 
         </script>

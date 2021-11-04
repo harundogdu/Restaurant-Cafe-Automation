@@ -72,12 +72,14 @@ if ($_GET && $_GET['id'] !== null) {
                         url: "./functions/operations.php?operation=add",
                         data: $(`#addForm`).serialize(),
                         success(response) {
-                            if (response.indexOf("200")) {
+                            if (response.indexOf("200" > 0)) {
                                 $('#dataFromShow').load("./functions/operations.php?operation=show&id=" + $tableId);
                                 $('#addForm').trigger('reset');
-                            } else if (response.indexOf("400")) {
+                            }
+                            if (response.indexOf("400" > 0)) {
                                 console.log('Başarısız')
-                            } else if (response.indexOf("999")) {
+                            }
+                            if (response.indexOf("999") > 0) {
                                 alert("Ürün ve adet bilgisini giriniz!");
                             }
                         }
