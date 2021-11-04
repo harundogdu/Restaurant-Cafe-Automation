@@ -3,10 +3,13 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    outline: none !important;
 }
 
 body {
-    background-color: #eaeaea !important;
+    background-color: #EAFFD0 !important;
+    font-family: Vivaldi, serif;
+    height: 100vh;
 }
 
 html, body, div, span, applet, object, iframe,
@@ -87,7 +90,8 @@ a {
 }
 
 .detail-first-div {
-    background-color: #fff;
+    background-color: #FBF3E4;
+    height: 93.8vh;
 }
 
 .detail-second-div {
