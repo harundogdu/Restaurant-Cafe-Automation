@@ -47,13 +47,20 @@ class System
 
     public function getDBTableCount($database, $tableName, $type = 1)
     {
-        if ($type === 2) {
-            $query = $database->prepare("select distinct tableId from  $tableName");
+        if ($tableName === "orders" && $type !== 2) {
+            $query = $database->query("select SUM(amount) as 'totalAmount' from  orders")->fetch(PDO::FETCH_ASSOC);
+            return $query["totalAmount"];
+
         } else {
-            $query = $database->prepare("select * from  $tableName");
+            if ($type === 2) {
+                $query = $database->prepare("select distinct tableId from  $tableName");
+            } else {
+                $query = $database->prepare("select * from  $tableName");
+            }
+            $query->execute();
+            return $query->rowCount();
         }
-        $query->execute();
-        return $query->rowCount();
+
     }
 
     public function getSolidityRatio($database)
