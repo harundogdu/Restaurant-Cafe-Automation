@@ -126,6 +126,19 @@ ob_start();
                     case 'delete-products':
                         $system->deleteProducts($database);
                         break;
+                        /* Products */
+                    case 'categories':
+                        $system->categories($database);
+                        break;
+                    case 'add-categories':
+                        $system->addCategories($database);
+                        break;
+                    case 'update-categories':
+                        $system->updateCategories($database);
+                        break;
+                    case 'delete-categories':
+                        $system->deleteCategories($database);
+                        break;
                     default:
                         echo 'Welcome to dashboard!';
                         break;

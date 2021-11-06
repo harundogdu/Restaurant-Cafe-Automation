@@ -283,10 +283,10 @@ class AdminClass
                                         <select class='form-control' name='categoryId'>
                                             <option value='" . $product['categoryId'] . "'>" . $currentCategory['name'] . "</option>
                                         ";
-                                    foreach ($categories as $category) {
-                                        echo "<option value='" . $category['id'] . "'>" . $category['name'] . "</option>";
-                                    }
-                                    echo "</select>
+                foreach ($categories as $category) {
+                    echo "<option value='" . $category['id'] . "'>" . $category['name'] . "</option>";
+                }
+                echo "</select>
                                     </div>
                                     <div class='form-row d-flex align-items-center justify-content-end'>
                                         <input type='hidden' name='productId' value='" . $product['id'] . "' />
@@ -308,6 +308,116 @@ class AdminClass
                 $this->mainQuery($database, 'delete from products where id=' . $productId);
             }
             $this->redirectToLink(self::DASHBOARD_URL . "?page=products");
+        }
+    }
+    /* Kategori Yönetimi */
+    public function categories($database)
+    {
+        echo "
+            <table class='table table-striped text-center'>                
+                <div class='text-right'>
+                    <a href='dashboard.php?page=add-categories' class='btn btn-success mb-2'>Kategori Ekle</a>
+                </div>
+                <thead class='table-dark'>
+                    <tr>
+                        <th>Kategori Adı</th>
+                        <th>Ürün Sayısı</th>
+                        <th>İşlemler</th>
+                    </tr>  
+                </thead>
+                <tbody>";
+        $categories = $this->mainQuery($database, 'select * from categories');
+
+        foreach ($categories as $category) {
+            echo "
+            <tr>
+                <td class='border-right'>" . $category['name'] . "</td>
+                <td class='border-right'>";
+            if ($categoryAmount = $this->mainQuery($database, 'SELECT COUNT(id) as "amount" FROM products where categoryId=' . $category['id'] . ' GROUP BY categoryId', true)) {
+                echo $categoryAmount['amount'];
+            } else {
+                echo "0";
+            }
+            echo "</td>
+                <td>
+                    <a href='dashboard.php?page=update-categories&id=" . $category['id'] . "' class='btn btn-warning'>Güncelle</a>
+                    <a href='dashboard.php?page=delete-categories&id=" . $category['id'] . "' class='btn btn-danger'>Sil</a>
+                </td>
+            </tr>
+            ";
+        }
+
+        echo "</tbody>
+            </table>
+            ";
+    }
+
+    public function addCategories($database)
+    {
+        if (isset($_POST['categoryName'])) {
+            $categoryName = $_POST['categoryName'];
+            if ($this->mainQuery($database, "insert into categories (name) VALUES ('$categoryName')")) {
+                $this->redirectToLink(self::DASHBOARD_URL . "?page=categories");
+            }
+        } else {
+            echo "
+                <h5 class='text-center'>Kategori Ekle</h5>
+                    <div class='row'>
+                        <div class='col-md-4 mx-auto mt-5 p-3 border'>
+                            <form action='' method='post'>
+                                <div class='form-row my-2'>
+                                    <input type='text' name='categoryName' placeholder='Kategori adı giriniz.' class='form-control' required/>
+                                </div>
+                                <div class='form-row d-flex align-items-center justify-content-end'>
+                                    <input type='submit' name='btnUpdate' value='Kategori Ekle' class='btn btn-info' />
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                ";
+        }
+    }
+
+    public function updateCategories($database)
+    {
+        if (isset($_POST['categoryId'])) {
+            $categoryId = $_POST['categoryId'];
+            $categoryName = $_POST['categoryName'];
+            if ($this->mainQuery($database, "update categories SET name='$categoryName' where id=$categoryId")) {
+                $this->redirectToLink(self::DASHBOARD_URL . "?page=categories");
+            }
+        } else {
+            if (isset($_GET['id'])) {
+                $categoryId = $_GET['id'];
+                $category = $this->mainQuery($database, 'select * from categories where id=' . $categoryId, true);
+                echo "
+                <h5 class='text-center'>Kategori Güncelle</h5>
+                    <div class='row'>
+                        <div class='col-md-4 mx-auto mt-5 p-3 border'>
+                            <form action='' method='post'>
+                                <div class='form-row my-2'>
+                                    <input type='text' name='categoryName' placeholder='Kategori adı giriniz.' class='form-control' required value=" . $category['name'] . " />
+                                </div>
+                                <div class='form-row d-flex align-items-center justify-content-end'>
+                                    <input type='hidden' name='categoryId' value='" . $category['id'] . "' />
+                                    <input type='submit' name='btnUpdate' value='Kategori Güncelle' class='btn btn-info' />
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                ";
+            }
+        }
+    }
+
+    public function deleteCategories($database)
+    {
+        if (isset($_GET['id'])) {
+            $categoryId = $_GET['id'];
+            if (!$this->mainQuery($database, 'SELECT COUNT(id) as "amount" FROM products where categoryId=' . $categoryId . ' GROUP BY categoryId')) {
+                $this->mainQuery($database, 'delete from categories where id=' . $categoryId);
+            }
+            $this->redirectToLink(self::DASHBOARD_URL . "?page=categories");
         }
     }
 }
