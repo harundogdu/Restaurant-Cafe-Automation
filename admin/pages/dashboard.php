@@ -6,7 +6,8 @@ $system = new AdminClass();
 $statistics = new System();
 if (isset($database)) {
     $system->cookieControl($database);
-}
+};
+ob_start();
 ?>
 <!doctype html>
 <html lang="en">
@@ -111,7 +112,20 @@ if (isset($database)) {
                         break;
                     case 'delete-tables':
                         $system->deleteTables($database);
-                        break;                       
+                        break;
+                        /* Products */
+                    case 'products':
+                        $system->products($database);
+                        break;
+                    case 'add-products':
+                        $system->addProducts($database);
+                        break;
+                    case 'update-products':
+                        $system->updateProducts($database);
+                        break;
+                    case 'delete-products':
+                        $system->deleteProducts($database);
+                        break;
                     default:
                         echo 'Welcome to dashboard!';
                         break;

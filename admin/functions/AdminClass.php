@@ -75,7 +75,7 @@ class AdminClass
         setcookie('username', null, -1, '/Restaurant-Cafe-Automation/admin');
         $this->redirectToLink(self::PANEL_URL);
     }
-
+    /* Masa Yönetimi */
     public function tables($database)
     {
         echo "
@@ -109,14 +109,15 @@ class AdminClass
             ";
     }
 
-    public function addTables($database){
+    public function addTables($database)
+    {
         if (isset($_POST['tableName'])) {
             $tableName = $_POST['tableName'];
             if ($this->mainQuery($database, "insert into tables (name) VALUES ('$tableName')")) {
-                $this->redirectToLink(self::DASHBOARD_URL);
+                $this->redirectToLink(self::DASHBOARD_URL . "?page=tables");
             }
-        } else {                       
-                echo "
+        } else {
+            echo "
                 <h5 class='text-center'>Masa Ekle</h5>
                     <div class='row'>
                         <div class='col-md-4 mx-auto mt-5 p-3 border'>
@@ -130,7 +131,7 @@ class AdminClass
                             </form>
                         </div>
                     </div>
-                ";         
+                ";
         }
     }
 
@@ -140,7 +141,7 @@ class AdminClass
             $tableId = $_POST['tableId'];
             $tableName = $_POST['tableName'];
             if ($this->mainQuery($database, "update tables SET name='$tableName' where id=$tableId")) {
-                $this->redirectToLink(self::DASHBOARD_URL);
+                $this->redirectToLink(self::DASHBOARD_URL . "?page=tables");
             }
         } else {
             if (isset($_GET['id'])) {
@@ -165,7 +166,7 @@ class AdminClass
             }
         }
     }
-    
+
     public function deleteTables($database)
     {
         if (isset($_GET['id'])) {
@@ -173,7 +174,140 @@ class AdminClass
             if (!$this->mainQuery($database, 'select * from orders where tableId=' . $tableId)) {
                 $this->mainQuery($database, 'delete from tables where id=' . $tableId);
             }
-            $this->redirectToLink(self::DASHBOARD_URL + "?page=tables");
+            $this->redirectToLink(self::DASHBOARD_URL . "?page=tables");
+        }
+    }
+    /* Ürün Yönetimi */
+    public function products($database)
+    {
+        echo "
+            <table class='table table-striped text-center'>                
+                <div class='text-right'>
+                    <a href='dashboard.php?page=add-products' class='btn btn-success mb-2'>Ürün Ekle</a>
+                </div>
+                <thead class='table-dark'>
+                    <tr>
+                        <th>Ürün Adı</th>
+                        <th>Ürün Fiyatı</th>
+                        <th>İşlemler</th>
+                    </tr>  
+                </thead>
+                <tbody>";
+        $products = $this->mainQuery($database, 'select * from products');
+
+        foreach ($products as $product) {
+            echo "
+            <tr>
+                <td class='border-right'>" . $product['name'] . "</td>
+                <td class='border-right'>" . $product['price'] . "₺</td>
+                <td>
+                    <a href='dashboard.php?page=update-products&id=" . $product['id'] . "' class='btn btn-warning'>Güncelle</a>
+                    <a href='dashboard.php?page=delete-products&id=" . $product['id'] . "' class='btn btn-danger'>Sil</a>
+                </td>
+            </tr>
+            ";
+        }
+
+        echo "</tbody>
+            </table>
+            ";
+    }
+
+    public function addProducts($database)
+    {
+        if (isset($_POST['productName'])) {
+            $productName = $_POST['productName'];
+            $productPrice = $_POST['productPrice'];
+            $categoryId = $_POST['categoryId'];
+            if ($this->mainQuery($database, "insert into products (categoryId,name,price) VALUES ($categoryId,'$productName',$productPrice)")) {
+                $this->redirectToLink(self::DASHBOARD_URL . "?page=products");
+            }
+        } else {
+            $categories = $this->mainQuery($database, 'select * from categories');
+            echo "
+                <h5 class='text-center'>Ürün Ekle</h5>
+                    <div class='row'>
+                        <div class='col-md-4 mx-auto mt-5 p-3 border'>
+                            <form action='' method='post'>
+                                <div class='form-row my-2'>
+                                    <input type='text' name='productName' placeholder='Ürün adı giriniz.' class='form-control'/>
+                                </div>
+                                <div class='form-row my-2'>
+                                    <input type='text' name='productPrice' placeholder='Ürün fiyatı giriniz.' class='form-control'/>
+                                </div>
+                                <div class='form-row my-2'>
+                                    <select class='form-control' name='categoryId'>";
+            foreach ($categories as $category) {
+                echo "<option value='" . $category['id'] . "'>" . $category['name'] . "</option>";
+            }
+            echo "</select>
+                                </div>
+                                <div class='form-row d-flex align-items-center justify-content-end'>
+                                    <input type='submit' name='btnUpdate' value='Ürün Ekle' class='btn btn-info' />
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                ";
+        }
+    }
+
+    public function updateProducts($database)
+    {
+        if (isset($_POST['productId'])) {
+            $productId = $_POST['productId'];
+            $productName = $_POST['productName'];
+            $productPrice = $_POST['productPrice'];
+            $categoryId = $_POST['categoryId'];
+            if ($this->mainQuery($database, "update products SET categoryId=$categoryId,name='$productName',price=$productPrice where id=$productId")) {
+                $this->redirectToLink(self::DASHBOARD_URL . "?page=products");
+            }
+        } else {
+            if (isset($_GET['id'])) {
+                $productId = $_GET['id'];
+                $product = $this->mainQuery($database, 'select * from products where id=' . $productId, true);
+                $currentCategory = $this->mainQuery($database, 'select * from categories where id=' . $product['categoryId'], true);
+                $categories = $this->mainQuery($database, 'select * from categories');
+                echo "
+                    <h5 class='text-center'>Ürün Ekle</h5>
+                        <div class='row'>
+                            <div class='col-md-4 mx-auto mt-5 p-3 border'>
+                                <form action='' method='post'>
+                                    <div class='form-row my-2'>
+                                        <input type='text' name='productName' placeholder='Ürün adı giriniz.' class='form-control' value='" . $product['name'] . "'/>
+                                    </div>
+                                    <div class='form-row my-2'>
+                                        <input type='text' name='productPrice' placeholder='Ürün fiyatı giriniz.' class='form-control' value='" . $product['price'] . "'/>
+                                    </div>
+                                    <div class='form-row my-2'>
+                                        <select class='form-control' name='categoryId'>
+                                            <option value='" . $product['categoryId'] . "'>" . $currentCategory['name'] . "</option>
+                                        ";
+                                    foreach ($categories as $category) {
+                                        echo "<option value='" . $category['id'] . "'>" . $category['name'] . "</option>";
+                                    }
+                                    echo "</select>
+                                    </div>
+                                    <div class='form-row d-flex align-items-center justify-content-end'>
+                                        <input type='hidden' name='productId' value='" . $product['id'] . "' />
+                                        <input type='submit' name='btnUpdate' value='Ürün Güncelle' class='btn btn-info' />
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    ";
+            }
+        }
+    }
+
+    public function deleteProducts($database)
+    {
+        if (isset($_GET['id'])) {
+            $productId = $_GET['id'];
+            if (!$this->mainQuery($database, 'select * from orders where productId=' . $productId)) {
+                $this->mainQuery($database, 'delete from products where id=' . $productId);
+            }
+            $this->redirectToLink(self::DASHBOARD_URL . "?page=products");
         }
     }
 }
