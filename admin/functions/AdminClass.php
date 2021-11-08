@@ -421,29 +421,30 @@ class AdminClass
         }
     }
     /* Şifre Değiştir */
-    public function changePassword($database){
+    public function changePassword($database)
+    {
 
-        if(isset($_POST['btnChangePassword'])){
+        if (isset($_POST['btnChangePassword'])) {
             $oldPassword = htmlspecialchars($_POST['oldPassword']);
             $newPassword = htmlspecialchars($_POST['newPassword']);
             $newPasswordAgain = htmlspecialchars($_POST['newPasswordAgain']);
 
-            if(!$this->mainQuery($database,"select * from users where id=1 AND password='".md5(sha1(md5($oldPassword)))."'", true)){
+            if (!$this->mainQuery($database, "select * from users where id=1 AND password='" . md5(sha1(md5($oldPassword))) . "'", true)) {
                 echo "
                     <div class='alert alert-danger text-center'>
                         Eski şifre hatalı!
                     </div>
                 ";
-                header("Refresh:1; url=".self::DASHBOARD_URL."?page=password");
-            }else if($newPassword !== $newPasswordAgain){
+                header("Refresh:1; url=" . self::DASHBOARD_URL . "?page=password");
+            } else if ($newPassword !== $newPasswordAgain) {
                 echo "
                 <div class='alert alert-danger text-center'>
                     Yeni şifreler eşleşmiyor!
                 </div>
             ";
-            header("Refresh:1; url=".self::DASHBOARD_URL."?page=password");
-            }else{
-                if($this->mainQuery($database,"update users SET password='".md5(sha1(md5($newPassword)))."' where id=1")){
+                header("Refresh:1; url=" . self::DASHBOARD_URL . "?page=password");
+            } else {
+                if ($this->mainQuery($database, "update users SET password='" . md5(sha1(md5($newPassword))) . "' where id=1")) {
                     echo "
                         <div class='alert alert-success text-center'>
                             Şifre başarıyla değiştirildi!
@@ -452,9 +453,7 @@ class AdminClass
                 }
                 $this->redirectToLink(self::DASHBOARD_URL);
             }
-
-
-        }else{
+        } else {
             echo "
                 <div class='col-md-6 mx-auto'>
                     <div class='border p-3'>
@@ -474,6 +473,133 @@ class AdminClass
                     </div>
                 </div>
             ";
+        }
+    }
+    /* Rapor Yönetimi */
+    public function reports($database)
+    {
+        if ($_GET) {    
+            $time = @$_GET['time'];
+            switch ($time) {
+                case "today":
+                    $tableDatas = $this->mainQuery($database, 'SELECT products.name as pName, tables.name as tName, reports.amount as amount, SUM(products.price * reports.amount) as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE reports.date = CURDATE() GROUP BY tName ORDER BY date');
+
+                    $productDatas = $this->mainQuery($database, 'SELECT products.name as pName, tables.name as tName,SUM(amount) as amount,  products.price as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE reports.date = CURDATE() GROUP BY pName ORDER BY date');
+                    break;
+                case "yesterday":
+                    $tableDatas = $this->mainQuery($database, 'SELECT products.name as pName, tables.name as tName,SUM(amount) as amount, products.price as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE reports.date =  DATE_SUB(CURDATE(), INTERVAL 1 DAY) GROUP BY tName ORDER BY date');
+
+                    $productDatas = $this->mainQuery($database, 'SELECT products.name as pName, tables.name as tName,SUM(amount) as amount,  products.price as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE reports.date =  DATE_SUB(CURDATE(), INTERVAL 1 DAY) GROUP BY pName ORDER BY date');                    
+                    break;
+                case 'week':
+                    $tableDatas = $this->mainQuery($database, 'SELECT products.name as pName, tables.name as tName,SUM(amount) as amount, products.price as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE  YEARWEEK(date) = YEARWEEK(CURRENT_DATE) GROUP BY tName ORDER BY date');
+
+                    $productDatas = $this->mainQuery($database, 'SELECT products.name as pName, tables.name as tName,SUM(amount) as amount,  products.price as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE  YEARWEEK(date) = YEARWEEK(CURRENT_DATE) GROUP BY pName ORDER BY date');   
+                    break;
+                case 'month':
+                    $tableDatas = $this->mainQuery($database, 'SELECT products.name as pName, tables.name as tName,SUM(amount) as amount, products.price as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE reports.date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) GROUP BY tName ORDER BY date');
+
+                    $productDatas = $this->mainQuery($database, 'SELECT products.name as pName, tables.name as tName,SUM(amount) as amount,  products.price as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE reports.date  >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) GROUP BY pName ORDER BY date'); 
+                    break;
+                case 'all':
+                default:
+                    $tableDatas = $this->mainQuery($database, 'SELECT products.name as pName, tables.name as tName,SUM(amount) as amount, products.price as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE reports.date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) GROUP BY tName ORDER BY date');
+                                
+                    $productDatas = $this->mainQuery($database, 'SELECT products.name as pName, tables.name as tName,SUM(amount) as amount,  products.price as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE reports.date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) GROUP BY pName ORDER BY date'); 
+                    break;                   
+            }
+                echo "
+                <table class='table text-center'>
+                    <thead class='table-success'>
+                        <tr>
+                            <th><a href='dashboard.php?page=reports&time=today'>Bugün</a></th>
+                            <th><a href='dashboard.php?page=reports&time=yesterday'>Dün</a></th>
+                            <th><a href='dashboard.php?page=reports&time=week'>Bu Hafta</a></th>
+                            <th><a href='dashboard.php?page=reports&time=month'>Bu Ay</a></th>
+                            <th><a href='dashboard.php?page=reports&time=all'>Tüm Zamanlar</a></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan='3'>
+                                <table class='table text-center table-striped'>
+                                    <thead class='table-dark'>
+                                        <tr>
+                                            <th colspan='2'>Masa adet ve Hasılat</th>
+                                        </tr>
+                                        <tr class='table-danger text-dark font-weight-bold'>
+                                            <td>Masa İsmi</td>
+                                            <td>Hasılat</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>";
+                                    if($tableDatas){                                        
+                                        $totalPrice = 0;
+                                        foreach($tableDatas as $data){   
+                                            $total = $data['price'];
+                                            $totalPrice += $total;                                     
+                                            echo "<tr>
+                                                    <td>".$data['tName']."</td>
+                                                    <td>".$total."₺</td>
+                                                  </tr>";
+                                        }
+                                        echo "
+                                        <tr class='table-danger text-dark font-weight-bold'>
+                                            <td>Toplam</td>
+                                            <td>".$totalPrice."₺</td>
+                                        </tr>
+                                    ";
+                                    }
+                                    else{
+                                        echo "<tr><td colspan='2'><div class='alert alert-warning'>Kayıt Bulunamadı!</div></td></tr>";
+                                    }
+                                    echo"</tbody>
+                                </table>
+                            </td>                 
+                            <td colspan='4'>
+                                <table class='table text-center table-striped'>
+                                    <thead class='table-dark'>
+                                        <tr>
+                                            <th colspan='3'>Ürün adet ve Hasılat</th>
+                                        </tr>
+                                        <tr class='table-danger text-dark font-weight-bold'>
+                                            <td>Ürün İsmi</td>
+                                            <td>Ürün Adet</td>
+                                            <td>Hasılat</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>";
+                                        if($productDatas){
+                                            $totalAmount = 0;
+                                            $totalPrice = 0;
+                                            foreach($productDatas as $data){                                                  
+                                                $total = $data['amount'] * $data['price'];
+                                                $totalPrice += $total;
+                                                $totalAmount += $data['amount'];
+                                                echo "<tr>
+                                                        <td>".$data['pName']."</td>
+                                                        <td>". $data['amount']."</td>
+                                                        <td>". $total."₺</td>
+                                                    </tr>";
+                                            }
+                                            echo "
+                                                <tr class='table-danger text-dark font-weight-bold'>
+                                                    <td>Toplam</td>
+                                                    <td>".$totalAmount."</td>
+                                                    <td>".$totalPrice."₺</td>
+                                                </tr>
+                                            ";
+                                        }
+                                        else{
+                                            echo "<tr><td colspan='3'><div class='alert alert-warning'>Kayıt Bulunamadı!</div></td></tr>";
+                                        }
+                                    echo "</tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                    ";            
         }
     }
 }

@@ -143,6 +143,10 @@ ob_start();
                     case 'password':
                         $system->changePassword($database);
                         break;
+                        /* Reports */
+                    case 'reports':
+                        $system->reports($database);
+                        break;
                     default:
                         echo 'Welcome to dashboard!';
                         break;
