@@ -420,4 +420,60 @@ class AdminClass
             $this->redirectToLink(self::DASHBOARD_URL . "?page=categories");
         }
     }
+    /* Şifre Değiştir */
+    public function changePassword($database){
+
+        if(isset($_POST['btnChangePassword'])){
+            $oldPassword = htmlspecialchars($_POST['oldPassword']);
+            $newPassword = htmlspecialchars($_POST['newPassword']);
+            $newPasswordAgain = htmlspecialchars($_POST['newPasswordAgain']);
+
+            if(!$this->mainQuery($database,"select * from users where id=1 AND password='".md5(sha1(md5($oldPassword)))."'", true)){
+                echo "
+                    <div class='alert alert-danger text-center'>
+                        Eski şifre hatalı!
+                    </div>
+                ";
+                header("Refresh:1; url=".self::DASHBOARD_URL."?page=password");
+            }else if($newPassword !== $newPasswordAgain){
+                echo "
+                <div class='alert alert-danger text-center'>
+                    Yeni şifreler eşleşmiyor!
+                </div>
+            ";
+            header("Refresh:1; url=".self::DASHBOARD_URL."?page=password");
+            }else{
+                if($this->mainQuery($database,"update users SET password='".md5(sha1(md5($newPassword)))."' where id=1")){
+                    echo "
+                        <div class='alert alert-success text-center'>
+                            Şifre başarıyla değiştirildi!
+                        </div>
+                    ";
+                }
+                $this->redirectToLink(self::DASHBOARD_URL);
+            }
+
+
+        }else{
+            echo "
+                <div class='col-md-6 mx-auto'>
+                    <div class='border p-3'>
+                        <h3>Şifre Değiştir</h3>
+                        <form action='' method='post'>
+                            <div class='form-row'>
+                                <input type='password' name='oldPassword' placeholder='Eski şifrenizi giriniz... ' class='form-control' required />
+                            </div>
+                            <div class='form-row'>
+                                <input type='password' name='newPassword' placeholder='Yeni şifrenizi giriniz... ' class='form-control my-2' required />
+                                <input type='password' name='newPasswordAgain' placeholder='Yeni şifrenizi tekrar giriniz... ' class='form-control' required />
+                            </div> 
+                            <div class='form-row'>
+                                <input name='btnChangePassword' type='submit' class='btn btn-success mt-2 ml-auto' value='Parola Değiştir' />
+                            </div>                       
+                        </form>
+                    </div>
+                </div>
+            ";
+        }
+    }
 }

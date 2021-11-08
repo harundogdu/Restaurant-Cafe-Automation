@@ -49,7 +49,7 @@ ob_start();
                         <a href="dashboard.php?page=reports" class="text-primary text-decoration-none">Rapor Yönetimi</a>
                     </div>
                     <div class="my-1 p-2 border-bottom text-primary font-weight-bold">
-                        <a href="dashboard.php?page=passwords" class="text-primary text-decoration-none">Şifre Değiştir</a>
+                        <a href="dashboard.php?page=password" class="text-primary text-decoration-none">Şifre Değiştir</a>
                     </div>
                     <div class="my-1 p-2">
                         <a href="dashboard.php?page=logout" id="btnLogOut" class="text-danger text-decoration-none font-weight-bold">Çıkış
@@ -126,7 +126,7 @@ ob_start();
                     case 'delete-products':
                         $system->deleteProducts($database);
                         break;
-                        /* Products */
+                        /* Categories */
                     case 'categories':
                         $system->categories($database);
                         break;
@@ -138,6 +138,10 @@ ob_start();
                         break;
                     case 'delete-categories':
                         $system->deleteCategories($database);
+                        break;
+                        /* Password */
+                    case 'password':
+                        $system->changePassword($database);
                         break;
                     default:
                         echo 'Welcome to dashboard!';
