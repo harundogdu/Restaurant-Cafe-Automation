@@ -33,7 +33,7 @@ if (isset($_GET)) {
                                     <tr>
                                         <td style='vertical-align: middle'>" . $order["name"] . "</td>
                                         <td style='vertical-align: middle'>" . $order["amount"] . "</td>
-                                        <td style='vertical-align: middle'>" . $order["price"] . "₺</td>
+                                        <td style='vertical-align: middle'>" . number_format($order["price"],2,',','.') . "₺</td>
                                         <td style='vertical-align: middle'>
                                             <button data-cnd='" . $tableId . "' data-id='" . $order['id'] . "' class='btnDelete btn btn-danger font-weight-bolder'>Sil</button>
                                         </td>
@@ -44,7 +44,7 @@ if (isset($_GET)) {
                                     <tr class='bg-dark text-white'>
                                         <td>Toplam</td>
                                         <td class='border-right border-left border-light'>" . $totalAmount . "</td>
-                                        <td colspan='2' class='text-warning font-weight-bold'>" . $totalPrice . "₺</td>
+                                        <td colspan='2' class='text-warning font-weight-bold'>" . number_format($totalPrice,2,',','.') . "₺</td>
                                     </tr>
                                 </tbody>
                             </table>          

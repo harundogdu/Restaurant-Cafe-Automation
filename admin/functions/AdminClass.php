@@ -199,7 +199,7 @@ class AdminClass
             echo "
             <tr>
                 <td class='border-right'>" . $product['name'] . "</td>
-                <td class='border-right'>" . $product['price'] . "₺</td>
+                <td class='border-right'>" . number_format($product['price'],2,',','.'). "₺</td>
                 <td>
                     <a href='dashboard.php?page=update-products&id=" . $product['id'] . "' class='btn btn-warning'>Güncelle</a>
                     <a href='dashboard.php?page=delete-products&id=" . $product['id'] . "' class='btn btn-danger'>Sil</a>
@@ -237,10 +237,10 @@ class AdminClass
                                 </div>
                                 <div class='form-row my-2'>
                                     <select class='form-control' name='categoryId'>";
-            foreach ($categories as $category) {
-                echo "<option value='" . $category['id'] . "'>" . $category['name'] . "</option>";
-            }
-            echo "</select>
+                                    foreach ($categories as $category) {
+                                        echo "<option value='" . $category['id'] . "'>" . $category['name'] . "</option>";
+                                    }
+                                    echo "</select>
                                 </div>
                                 <div class='form-row d-flex align-items-center justify-content-end'>
                                     <input type='submit' name='btnUpdate' value='Ürün Ekle' class='btn btn-info' />
@@ -501,6 +501,16 @@ class AdminClass
 
                     $productDatas = $this->mainQuery($database, 'SELECT products.name as pName, tables.name as tName,SUM(amount) as amount,  products.price as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE reports.date  >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) GROUP BY pName ORDER BY date'); 
                     break;
+                case 'selected':
+                    if(isset($_POST['start'])){
+                    $start = htmlspecialchars($_POST['start']);
+                    $end = htmlspecialchars($_POST['end']);
+
+                    $tableDatas = $this->mainQuery($database, "SELECT products.name as pName, tables.name as tName,SUM(amount) as amount, products.price as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE reports.date BETWEEN '$start' AND '$end' GROUP BY tName ORDER BY date");
+
+                    $productDatas = $this->mainQuery($database, "SELECT products.name as pName, tables.name as tName,SUM(amount) as amount,  products.price as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE reports.date BETWEEN '$start' AND '$end' GROUP BY pName ORDER BY date");
+                    }
+                    break;
                 case 'all':
                 default:
                     $tableDatas = $this->mainQuery($database, 'SELECT products.name as pName, tables.name as tName,SUM(amount) as amount, products.price as price FROM products INNER JOIN reports ON products.id =  reports.productId INNER JOIN tables ON reports.tableId = tables.id  WHERE reports.date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) GROUP BY tName ORDER BY date');
@@ -510,17 +520,37 @@ class AdminClass
             }
                 echo "
                 <table class='table text-center'>
-                    <thead class='table-success'>
+                    <thead class='table-dark'>
                         <tr>
-                            <th><a href='dashboard.php?page=reports&time=today'>Bugün</a></th>
-                            <th><a href='dashboard.php?page=reports&time=yesterday'>Dün</a></th>
-                            <th><a href='dashboard.php?page=reports&time=week'>Bu Hafta</a></th>
-                            <th><a href='dashboard.php?page=reports&time=month'>Bu Ay</a></th>
-                            <th><a href='dashboard.php?page=reports&time=all'>Tüm Zamanlar</a></th>
+                            <th style='vertical-align:middle'><a class='text-white' href='dashboard.php?page=reports&time=today'>Bugün</a></th>
+                            <th style='vertical-align:middle'><a class='text-white' href='dashboard.php?page=reports&time=yesterday'>Dün</a></th>
+                            <th style='vertical-align:middle'><a class='text-white' href='dashboard.php?page=reports&time=week'>Bu Hafta</a></th>
+                            <th style='vertical-align:middle'><a class='text-white' href='dashboard.php?page=reports&time=month'>Bu Ay</a></th>
+                            <th style='vertical-align:middle'><a class='text-white' href='dashboard.php?page=reports&time=all'>Tüm Zamanlar</a></th>
+                            <th class='w-25 border-left'>
+                                <form action='".self::DASHBOARD_URL."?page=reports&time=selected' method='POST'>
+                                    <div class='form-row'>
+                                        <input type='date' name='start' class='form-control' required />
+                                        <input type='date' name='end' class='form-control my-1' required />
+                                    </div>
+                                    <div class='form-row d-flex justify-content-end'>
+                                        <input type='submit' class='btn btn-warning' value='Göster' />
+                                        ";
+                                        if(isset($_GET['time']) && $_GET['time'] === 'selected'){
+                                            ?>
+                                                <button type='button' class='btn btn-primary ml-2' onclick="pageWindow('<?=self::PANEL_URL?>functions/printReports.php?start=<?=$_POST['start']?>&end=<?=$_POST['end']?>','Raportlar',900,600,true)"> Yazdır </button>
+                                            <?php
+                                        }
+                                    echo"</div>
+                                </form>
+                            </th>  
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
+                    <tbody>";
+                        if(isset($_GET['time']) && $_GET['time'] === 'selected'){
+                            echo "<tr><td colspan='6'><div class='alert alert-info'>".$_POST['start']." - ". $_POST['end']." Arası Günler Gösteriliyor.</div></td></tr>";
+                        }
+                        echo"<tr>
                             <td colspan='3'>
                                 <table class='table text-center table-striped'>
                                     <thead class='table-dark'>
@@ -540,13 +570,13 @@ class AdminClass
                                             $totalPrice += $total;                                     
                                             echo "<tr>
                                                     <td>".$data['tName']."</td>
-                                                    <td>".$total."₺</td>
+                                                    <td>".number_format($total,2,',','.')."₺</td>
                                                   </tr>";
                                         }
                                         echo "
                                         <tr class='table-danger text-dark font-weight-bold'>
                                             <td>Toplam</td>
-                                            <td>".$totalPrice."₺</td>
+                                            <td>".number_format($totalPrice,2,',','.')."₺</td>
                                         </tr>
                                     ";
                                     }
@@ -579,14 +609,14 @@ class AdminClass
                                                 echo "<tr>
                                                         <td>".$data['pName']."</td>
                                                         <td>". $data['amount']."</td>
-                                                        <td>". $total."₺</td>
+                                                        <td>".number_format($total,2,',','.')."₺</td>
                                                     </tr>";
                                             }
                                             echo "
                                                 <tr class='table-danger text-dark font-weight-bold'>
                                                     <td>Toplam</td>
                                                     <td>".$totalAmount."</td>
-                                                    <td>".$totalPrice."₺</td>
+                                                    <td>".number_format($totalPrice,2,',','.')."₺</td>
                                                 </tr>
                                             ";
                                         }
@@ -603,3 +633,14 @@ class AdminClass
         }
     }
 }
+?>
+
+<script>        
+    let popupWindow = null;
+    function pageWindow(url,winName,width,heigth,scroll){
+        let LeftPosition = screen.width ? (screen.width - width) / 2 : 0;
+        let TopPosition = screen.height ? (screen.height - heigth) / 2 : 0;
+        let settings = 'heigth='+heigth+',width='+width+',top='+TopPosition+',left='+LeftPosition+',scrollbars='+scroll+',resizable';
+        popupWindow = window.open(url,winName,settings);
+    }        
+</script>

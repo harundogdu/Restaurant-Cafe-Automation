@@ -34,12 +34,12 @@ if ($_GET && $_GET['id'] !== null) {
                                     <button id='btn-addProduct' class='btn bgColorPink btn-block'>Ekle</button>
                                  </div>
                                  <div class='col-md-6'>";
-        for ($i = 1; $i < 16; $i++) {
-            echo "<label class='btn bgColorPurple m-1'>
-                                                <input type='radio' name='amount' value='" . $i . "' /> " . $i . "
-                                              </label>";
-        }
-        echo "   
+                                for ($i = 1; $i < 16; $i++) {
+                                    echo "<label class='btn bgColorPurple m-1'>
+                                                                        <input type='radio' name='amount' value='" . $i . "' /> " . $i . "
+                                                                    </label>";
+                                }
+                                echo "   
                                  </div>
                             </div>                            
                         </div>                        
